@@ -4,8 +4,8 @@ use glfw;
 use glfw::Context;
 use gl;
 
-const WIDTH: u32 = 480;
-const HEIGHT: u32 = 320;
+const WIDTH: u32 = 800; // 480
+const HEIGHT: u32 = 800; // 320
 const TITLE: &str = "Rustangles";
 
 fn main() {
@@ -31,7 +31,7 @@ fn main() {
 
     const VERT_SHADER: &str = "#version 330 core
     layout (location = 0) in vec3 position;
-     
+    
     void main()
     {
         gl_Position = vec4(position, 1.0);
@@ -39,6 +39,7 @@ fn main() {
         // gl_Position = vec4(position.x, position.y, position.z, 1.0);
     }";
 
+    // Triangle color
     const FRAG_SHADER: &str = "#version 330 core
     out vec4 Color;
     void main()
@@ -103,11 +104,28 @@ fn main() {
         gl::DeleteShader(fragment_shader);
     }
 
-    let vertecies = [
+    let vertices = [
         -0.5f32, -0.5, 0.0,
         0.5, -0.5, 0.0,
         0.0, 0.5, 0.0,
     ];
+
+    #[derive(Debug, Copy, Clone)]
+    struct Vertex {
+        x: f32,
+        y: f32,
+        z: f32,
+    }
+
+    // turns vertex array to a vector of Vertex structs
+    let vertex_structs: Vec<Vertex> = vertices.chunks(3)
+    .map(|chunk| Vertex {
+        x: chunk[0],
+        y: chunk[1],
+        z: chunk[2],
+    })
+    .collect();
+
 
     let mut vao = 0;
     unsafe { gl::GenVertexArrays(1, &mut vao) };
@@ -119,7 +137,7 @@ fn main() {
         gl::BindVertexArray(vao);
 
         gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
-        gl::BufferData(gl::ARRAY_BUFFER, std::mem::size_of_val(&vertecies) as isize, vertecies.as_ptr().cast(), gl::STATIC_DRAW);
+        gl::BufferData(gl::ARRAY_BUFFER, std::mem::size_of_val(&vertices) as isize, vertices.as_ptr().cast(), gl::STATIC_DRAW);
 
         gl::VertexAttribPointer(0, 3, gl::FLOAT, gl::FALSE, 3 * std::mem::size_of::<f32>() as i32, 0 as *const _);
         gl::EnableVertexAttribArray(0);
@@ -135,7 +153,8 @@ fn main() {
     while !window.should_close() {
         glfw.poll_events();
         for (_, event) in glfw::flush_messages(&events) {
-            glfw_handle_event(&mut window, event);
+            handle_events(&mut window, event); // triggers input handeling methods
+            //println!("x: {}, y: {}, z: {}", vertex.x, vertex.y, vertex.z);
         }
 
         clear_color(Color(0.3, 0.4, 0.6, 1.0));
@@ -169,7 +188,7 @@ pub fn gl_get_string<'a>(name: gl::types::GLenum) -> &'a str {
     v.to_str().unwrap()
 }
 
-fn glfw_handle_event(window: &mut glfw::Window, event: glfw::WindowEvent) {
+fn handle_events(window: &mut glfw::Window, event: glfw::WindowEvent) {
     use glfw::WindowEvent as Event;
     use glfw::Key;
     use glfw::Action;
@@ -178,12 +197,24 @@ fn glfw_handle_event(window: &mut glfw::Window, event: glfw::WindowEvent) {
         Event::Key(Key::Escape, _, Action::Press, _) => {
             window.set_should_close(true);
         },
-        Event::Key(Key::End, _, Action::Press, _) => {
+        Event::Key(Key::Up, _, Action::Press, _) => {
             window.set_should_close(true);
         },
+        Event::Key(Key::Down, _, Action::Press, _) => {
+            window.set_should_close(true);
+
+        },
+        Event::Key(Key::Left, _, Action::Press, _) => {
+            window.set_should_close(true);
+        },
+        Event::Key(Key::Right, _, Action::Press, _) => {
+            window.set_should_close(true);
+        },
+        /* Debug input message 
         Event::Key(key, _, Action::Press, _) => {
             println!("Other key pressed: {:?}", key);
         },
+        */
         _ => {},
     }
 }
