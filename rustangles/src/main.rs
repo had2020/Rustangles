@@ -6,10 +6,11 @@ use gl;
 
 const WIDTH: u32 = 480;
 const HEIGHT: u32 = 320;
-const TITLE: &str = "Hello From OpenGL World!";
+const TITLE: &str = "Rustangles";
 
 fn main() {
-    let mut glfw = glfw::init(glfw::FAIL_ON_ERRORS).unwrap();
+    use glfw::fail_on_errors;
+    let mut glfw = glfw::init(fail_on_errors!()).unwrap();
     glfw.window_hint(glfw::WindowHint::ContextVersion(3, 3));
     glfw.window_hint(glfw::WindowHint::OpenGlProfile(glfw::OpenGlProfileHint::Core));
     glfw.window_hint(glfw::WindowHint::OpenGlForwardCompat(true));
@@ -176,6 +177,12 @@ fn glfw_handle_event(window: &mut glfw::Window, event: glfw::WindowEvent) {
     match event {
         Event::Key(Key::Escape, _, Action::Press, _) => {
             window.set_should_close(true);
+        },
+        Event::Key(Key::End, _, Action::Press, _) => {
+            window.set_should_close(true);
+        },
+        Event::Key(key, _, Action::Press, _) => {
+            println!("Other key pressed: {:?}", key);
         },
         _ => {},
     }
