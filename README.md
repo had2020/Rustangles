@@ -1,6 +1,3 @@
-Here is the markdown documentation for the provided Rust code using GLFW to move a triangle around on the screen with arrow keys:
-
-```markdown
 # Rustangles: Moving a Triangle with Arrow Keys
 
 ## Overview
@@ -88,10 +85,6 @@ Once the application is running, use the arrow keys to move the triangle around 
 - **GLFW Initialization Error**: Ensure that `libglfw3` is installed and properly linked.
 - **Shader Compilation Errors**: Verify the syntax of the shaders in `VERT_SHADER` and `FRAG_SHADER`.
 - **Window Not Displaying**: Check if your GPU supports OpenGL 3.3 or update your GPU drivers.
-
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](./LICENSE) file for more details.
 
 ## Contributing
 
