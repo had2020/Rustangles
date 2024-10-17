@@ -104,68 +104,39 @@ fn main() {
         gl::DeleteShader(fragment_shader);
     }
 
-    // (X)   (Y)    (Z)
-    let mut vertices = [
-        -0.2f32, -0.2, 0.0, 
-        0.2, -0.2, 0.0, 
-        0.0, 0.2, 0.0, 
+    let vertices = [
+        -0.2f32, -0.2, 0.0,
+        0.2, -0.2, 0.0,
+        0.0, 0.2, 0.0,
     ];
 
-    let mut vao;
+    let mut vao = 0;
+    unsafe { gl::GenVertexArrays(1, &mut vao) };
 
-    vao = vertex_into_frame(vertices);
+    let mut vbo = 0;
+    unsafe { gl::GenBuffers(1, &mut vbo) };
+
+    unsafe {
+        gl::BindVertexArray(vao);
+
+        gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
+        gl::BufferData(gl::ARRAY_BUFFER, std::mem::size_of_val(&vertices) as isize, vertices.as_ptr().cast(), gl::STATIC_DRAW);
+
+        gl::VertexAttribPointer(0, 3, gl::FLOAT, gl::FALSE, 3 * std::mem::size_of::<f32>() as i32, 0 as *const _);
+        gl::EnableVertexAttribArray(0);
+
+        gl::BindBuffer(gl::ARRAY_BUFFER, 0);
+        gl::BindVertexArray(0);
+    }
     
     // -------------------------------------------
     println!("OpenGL version: {}", gl_get_string(gl::VERSION));
     println!("GLSL version: {}", gl_get_string(gl::SHADING_LANGUAGE_VERSION));
 
-    while !window.should_close() { // every frame
-        glfw.poll_events(); // inputs are events
+    while !window.should_close() {
+        glfw.poll_events();
         for (_, event) in glfw::flush_messages(&events) {
-            
-            // INPUT handeling
-            use glfw::WindowEvent as Event;
-            use glfw::Key;
-            use glfw::Action;
-
-            let speed = 0.2f32;
-
-            match event {
-                Event::Key(Key::Escape, _, Action::Press, _) => {
-                    window.set_should_close(true);
-                },
-                Event::Key(Key::Up | Key::W, _, Action::Repeat | Action::Press, _) => {
-                    vertices[1] += speed;
-                    vertices[4] += speed;
-                    vertices[7] += speed;
-                    vao = vertex_into_frame(vertices);
-                },
-                Event::Key(Key::Down | Key::S, _, Action::Repeat | Action::Press, _) => {
-                    vertices[1] += -speed;
-                    vertices[4] += -speed;
-                    vertices[7] += -speed;
-                    vao = vertex_into_frame(vertices);
-                },
-                Event::Key(Key::Left | Key::A, _, Action::Repeat | Action::Press, _) => {
-                    vertices[0] += -speed;
-                    vertices[3] += -speed;
-                    vertices[6] += -speed;
-                    vao = vertex_into_frame(vertices);
-                },
-                Event::Key(Key::Right | Key::D, _, Action::Repeat | Action::Press, _) => {
-                    vertices[0] += speed;
-                    vertices[3] += speed;
-                    vertices[6] += speed;
-                    vao = vertex_into_frame(vertices);
-                },
-                /* Debug input message 
-                Event::Key(key, _, Action::Press, _) => {
-                    println!("Other key pressed: {:?}", key);
-                },
-                */
-                _ => {},
-            }
-            // END of input handeling
+            handle_events(&mut window, event); // triggers input handeling methods
         }
 
         clear_color(Color(0.3, 0.4, 0.6, 1.0));
@@ -175,10 +146,10 @@ fn main() {
         }
 
         unsafe {
-            gl::UseProgram(shader_program); // sharder created earlyer
-            gl::BindVertexArray(vao); 
+            gl::UseProgram(shader_program);
+            gl::BindVertexArray(vao);
 
-            gl::DrawArrays(gl::TRIANGLES, 0, 3); // drawing of arrays
+            gl::DrawArrays(gl::TRIANGLES, 0, 3);
 
             gl::BindVertexArray(0);
         }
@@ -199,55 +170,15 @@ pub fn gl_get_string<'a>(name: gl::types::GLenum) -> &'a str {
     v.to_str().unwrap()
 }
 
-fn vertex_into_frame(vertices: [f32; 9]) -> u32{
-    // VERTEX Buffer 
-    // Setup a buffer is storing each frame
-    // stores variable, which stores id of vertices. Code named Vertex Array Object (VAO)
-    let mut vao = 0;
-    // creates new `vao` variable
-    unsafe { gl::GenVertexArrays(1, &mut vao) };
-    // Create a variable to store the ID of the Vertex Buffer Object (VBO)
-    let mut vbo = 0;
-    // Generate a new VBO and store its ID in the `vbo` variable
-    unsafe { gl::GenBuffers(1, &mut vbo) };
+fn handle_events(window: &mut glfw::Window, event: glfw::WindowEvent) {
+    use glfw::WindowEvent as Event;
+    use glfw::Key;
+    use glfw::Action;
 
-    unsafe {
-        // Bind the VAO, making it the active one for the current OpenGL context
-        gl::BindVertexArray(vao);
-
-        // Bind the VBO to the `GL_ARRAY_BUFFER` target, making it the active buffer for vertex data
-        gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
-        // Copy vertex data into the bound buffer (VBO), specifying its size and usage pattern
-        gl::BufferData(
-            gl::ARRAY_BUFFER,
-            std::mem::size_of_val(&vertices) as isize, // Size of the data in bytes
-            vertices.as_ptr().cast(), // Pointer to the vertex data
-            gl::STATIC_DRAW // Usage hint, indicating the data will be set once and used many times
-        );
-
-        // Define the layout of the vertex data:
-        // - Index 0: Refers to the position attribute of the vertex
-        // - Each vertex attribute contains 3 components (x, y, z)
-        // - Data type is `GL_FLOAT`
-        // - No normalization (`gl::FALSE`)
-        // - Stride is 3 times the size of a `f32` (indicating the space between consecutive vertex attributes)
-        // - Offset is `0`, indicating the start position in the buffer
-        gl::VertexAttribPointer(
-            0, 
-            3, 
-            gl::FLOAT, 
-            gl::FALSE, 
-            3 * std::mem::size_of::<f32>() as i32, 
-            0 as *const _
-        );
-        // Enable the vertex attribute at index 0 (the position attribute)
-        gl::EnableVertexAttribArray(0);
-
-        // Unbind the VBO from `GL_ARRAY_BUFFER` to avoid accidental modification
-        gl::BindBuffer(gl::ARRAY_BUFFER, 0);
-        // Unbind the VAO, which now holds the state of the vertex attribute setup
-        gl::BindVertexArray(0);
-        // END of vertex buffer array object intitliztion
+    match event {
+        Event::Key(Key::Escape, _, Action::Press, _) => {
+            window.set_should_close(true);
+        },
+        _ => {},
     }
-    vao
 }
