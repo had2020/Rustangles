@@ -1,2 +1,2 @@
 # Ructy Cplus triangles
- OpenGL triangles, in Rust and C++
+ OpenGL moving triangles, in Rust
