@@ -1,2 +1,2 @@
 # Rustangles
- OpenGL moving triangles, in Rust
+Glfw moving triangles, in Rust
